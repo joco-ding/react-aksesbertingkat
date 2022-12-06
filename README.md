@@ -4,7 +4,7 @@ Menerapkan User Experience pada Halaman Login yang Responsive dengan MUI.com
 
 ## Cara Install
 
-    git clone https://github.com/joco-ding/reactjs-login-mui.git && cd reactjs-login-mui && npm install
+    git clone https://github.com/joco-ding/ux-halaman-login.git && cd ux-halaman-login && npm install
 
 ## Cara Menjalankan Mode Development
 
