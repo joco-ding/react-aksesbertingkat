@@ -1,10 +1,12 @@
-# React JS UX Halaman Login Responsive
+# React JS Akses Bertingkat
 
-Menerapkan User Experience pada Halaman Login yang Responsive dengan MUI.com
+Aplikasi front-end akses bertingkat dengan backend:
+
+https://github.com/joco-ding/multilevel-akses
 
 ## Cara Install
 
-    git clone https://github.com/joco-ding/ux-halaman-login.git && cd ux-halaman-login && npm install
+    git clone https://github.com/joco-ding/react-aksesbertingkat.git && cd react-aksesbertingkat && npm install
 
 ## Cara Menjalankan Mode Development
 
@@ -18,7 +20,7 @@ Semua file yang dibutuhkan untuk di-unggah ke server ada di folder build
 
 ## Video Tutorial
 
-Video tutorial-nya bisa dilihat di [youtube](https://youtu.be/x9BG1C18Z3g). Jika ada yang ingin ditanyakan silakan tinggalkan di kolom komentar pada video nya.
+Video tutorial-nya bisa dilihat di [youtube](https://youtu.be/fIZbjBmeXAM). Jika ada yang ingin ditanyakan silakan tinggalkan di kolom komentar pada video nya.
 
 ## Modul
 
