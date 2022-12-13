@@ -1,23 +1,38 @@
 import * as React from 'react';
-import { Alert, Avatar, Box, Button, Checkbox, CssBaseline, FormControlLabel, Grid, IconButton, InputAdornment, Link, TextField, Typography } from '@mui/material';
-import { Close, CodeOutlined, Email, Key, Visibility, VisibilityOff } from '@mui/icons-material';
+import { Avatar, Box, Button, Checkbox, CssBaseline, FormControlLabel, Grid, IconButton, InputAdornment, Link, TextField, Typography } from '@mui/material';
+import { Close, CodeOutlined, Key, Person2Outlined, Visibility, VisibilityOff } from '@mui/icons-material';
 import { Buffer } from 'buffer'
+import AlertComponent from './components/alert';
+import { useDispatch, useSelector } from 'react-redux';
+import { login, setAlert } from './services/store';
+import { useNavigate } from 'react-router-dom';
+import { ApiPost } from './services/api';
+import { path } from './services/constants';
 
 const keyStorage = 'ingatkan'
 
 export default function LoginPage() {
-  const [nilai, setNilai] = React.useState({ email: '', password: '', ingatkan: false, viewPassword: false })
-  const [pesanError, setAlert] = React.useState('')
-  const emailInput = React.useRef(null)
+  const [nilai, setNilai] = React.useState({ idpengguna: '', password: '', ingatkan: false, viewPassword: false })
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+  const idpenggunaInput = React.useRef(null)
   const passwordInput = React.useRef(null)
+  const loginState = useSelector((state) => state.login)
+  const activePage = useSelector((state) => state.activePage)
 
   const updateNilai = e => setNilai({ ...nilai, [e.target.name]: e.target.value })
+
+  React.useEffect(() => {
+    if (typeof loginState.idpengguna === 'string') {
+      navigate(activePage)
+    }
+  }, [navigate, loginState, activePage])
 
   const hapusNilai = n => {
     setNilai({ ...nilai, [n]: '' })
     switch (n) {
-      case 'email':
-        emailInput.current.focus()
+      case 'idpengguna':
+        idpenggunaInput.current.focus()
         break;
       default:
         passwordInput.current.focus()
@@ -27,23 +42,34 @@ export default function LoginPage() {
 
   const ingatkan = e => setNilai({ ...nilai, ingatkan: e.target.checked })
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    console.log({ email: data.get('email'), password: data.get('password') });
+    const dataForm = new FormData(event.currentTarget);
+    console.log({ idpengguna: dataForm.get('idpengguna'), password: dataForm.get('password') });
     console.log(JSON.stringify({ nilai }))
     if (nilai.ingatkan) localStorage.setItem(keyStorage, new Buffer.from(JSON.stringify(nilai), 'utf-8').toString('base64'))
     else localStorage.removeItem(keyStorage)
-    if (data.get('email') === 'salah@salah.com') setAlert('Akun tidak valid, silakan ulangi lagi')
-  };
 
-  React.useEffect(() => {
-    async function removeAlert() {
-      await new Promise(r => setTimeout(r, 3000))
-      setAlert('')
+    const data = JSON.stringify({
+      idpengguna: dataForm.get('idpengguna'),
+      password: dataForm.get('password'),
+    })
+    let dataRespon = { ok: false, message: 'Tidak dapat mengakses server' }
+    try {
+      const respon = await ApiPost(path.login, data, {})
+      dataRespon = respon.data
+    } catch (error) {
+      if (error.response) {
+        dataRespon = error.response.data
+      }
     }
-    if (pesanError.trim().length > 0) removeAlert()
-  }, [pesanError])
+    if (dataRespon.ok && typeof dataRespon.data === 'string') {
+      console.log(dataRespon.data)
+      dispatch(login(dataRespon.data))
+    } else {
+      dispatch(setAlert({ variant: 'error', label: dataRespon.message }))
+    }
+  };
 
   React.useEffect(() => {
     const lastNilai = localStorage.getItem(keyStorage)
@@ -53,14 +79,13 @@ export default function LoginPage() {
     }
   }, [])
 
-  const errorEmail = nilai.email.length > 3 && !(/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(nilai.email))
+  const errorIdPengguna = nilai.idpengguna.length < 3
 
-  const disableSubmit = errorEmail || nilai.password.length < 5 || nilai.email.length < 5
+  const disableSubmit = errorIdPengguna || nilai.password.length < 5 || nilai.idpengguna.length < 5
 
   return (
     <Grid container component="main" sx={{ height: '100vh' }}>
       <CssBaseline />
-      {pesanError.trim().length > 0 && <Alert severity='error' sx={{ position: 'absolute', right: 16, top: 16 }}>{pesanError}</Alert>}
       <Grid item xs={false} sm={4} md={6} lg={8} sx={{ backgroundImage: 'url(https://img.jocodev.id/bwbg.webp)', backgroundRepeat: 'no-repeat', backgroundSize: 'cover', backgroundPosition: 'center' }} />
       <Grid item xs={12} sm={8} md={6} lg={4} square sx={{ height: '100%', justifyContent: 'center', alignItems: 'center', display: 'flex', flexDirection: 'row' }}>
         <Box sx={{ mx: 4, maxWidth: '400px', display: 'flex', flexDirection: 'column', alignItems: 'center' }} >
@@ -79,7 +104,7 @@ export default function LoginPage() {
             MASUK
           </Typography>
           <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 1 }}>
-            <TextField inputRef={emailInput} error={errorEmail} label='Email' variant='standard' fullWidth helperText={errorEmail ? 'Format Email belum valid' : ''} onChange={updateNilai} InputProps={{ endAdornment: <InputAdornment position='end'>{nilai.email.length > 3 && <IconButton sx={{ mr: 1 }} onClick={() => hapusNilai('email')}><Close /></IconButton>}       <Email /></InputAdornment> }} type='email' name='email' value={nilai.email} />
+            <TextField inputRef={idpenggunaInput} error={errorIdPengguna} label='ID Pengguna' variant='standard' fullWidth helperText={errorIdPengguna ? 'ID Pengguna belum valid' : ''} onChange={updateNilai} InputProps={{ endAdornment: <InputAdornment position='end'>{nilai.idpengguna.length > 3 && <IconButton sx={{ mr: 1 }} onClick={() => hapusNilai('idpengguna')}><Close /></IconButton>}       <Person2Outlined /></InputAdornment> }} type='text' name='idpengguna' value={nilai.idpengguna} />
 
             <TextField inputRef={passwordInput} label='Password' variant='standard' fullWidth sx={{ my: 2 }} onChange={updateNilai} InputProps={{ endAdornment: <InputAdornment position='end'  >     {nilai.password.length > 3 && <IconButton onClick={() => hapusNilai('password')}>     <Close />   </IconButton>}   <IconButton onClick={() => setNilai({ ...nilai, viewPassword: !nilai.viewPassword })}>     {!nilai.viewPassword && <VisibilityOff />}    {nilai.viewPassword && <Visibility />}   </IconButton>   <Key /></InputAdornment> }} type={nilai.viewPassword ? 'text' : 'password'} name='password' value={nilai.password} />
 
@@ -108,6 +133,7 @@ export default function LoginPage() {
           </Box>
         </Box>
       </Grid>
+      <AlertComponent />
     </Grid>
   );
 }
